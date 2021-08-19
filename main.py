@@ -1,10 +1,8 @@
 from __future__ import annotations
 import argparse
 import asyncio
-import csv
-from typing import List
 
-from bft import ByzantineMessages, Message, MessageStatus
+from bysviz import ByzantineMessages, Message
 
 
 async def main():
@@ -14,21 +12,7 @@ async def main():
     my_parser.add_argument('--source', action='store', type=str, help="CSV source file")
     args = my_parser.parse_args()
 
-    time_window_time_ms = args.time_window_time or 500
-    source_file = args.source
-    messages: List[Message] = []
-    if source_file:
-        with open(source_file, newline='') as csv_file:
-            spam_reader = csv.DictReader(csv_file, delimiter=',', quotechar='"')
-            for row in spam_reader:
-                messages.append(Message(
-                    int(row['source']), int(row['target']), MessageStatus.from_int(int(row['status'])),
-                    int(row['moment']),
-                ))
-    else:
-        messages = [Message(1, 0, MessageStatus.Tampered, 1), Message(0, 1, MessageStatus.Success, 0)]
-
-    bm = ByzantineMessages(messages)
+    bm = ByzantineMessages(messages=Message.from_csv(), time_window_time_ms=args.time_window_time or 500)
     bm.start()
 
 

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from bft import MessageStatus
+from .message import MessageStatus
 
 
 class TestMessageStatus(TestCase):
