@@ -102,7 +102,12 @@ class Message(object):
 
 
 class ByzantineMessages(object):
-    def __init__(self, messages: List[Message], r: Optional[int] = None, factor: int = 10):
+    def __init__(
+            self, messages: List[Message], r: Optional[int] = None, factor: int = 10, time_window_time_ms: int = 500,
+    ):
+        self.time_window_time_ms = time_window_time_ms
+        self.__wn = turtle.Screen()
+
         self.time_messages: Dict[int, List[Message]] = {}
         self.max_time = 0
         self.pen = turtle.Pen()
@@ -122,6 +127,16 @@ class ByzantineMessages(object):
 
             self.time_messages[message.moment] = list_msg
 
+        count = 0
+        screen_size = self.__wn.screensize()
+        for status, color in General.message_color.items():
+            General(
+                label=f"{status.to_str()}  ",
+                pos=(-3 * screen_size[0] // 4, screen_size[1] - count * 30),
+                color=color,
+            )
+            count += 1
+
         num_generals = max_generals + 1
         if not self.r:
             self.r = num_generals * factor
@@ -131,16 +146,13 @@ class ByzantineMessages(object):
             for x in range(num_generals)
         ]
 
-        count = 0
-        for status, color in General.message_color.items():
-            General(
-                label=f"{status.to_str()}  ",
-                pos=(num_generals * factor - 250, num_generals * factor - count * 30 + 350),
-                color=color,
-            )
-            count += 1
+        def reset():
+            self.reset()
+            self.__run_ontimer()
 
-    def draw_messages(self) -> bool:
+        self.__wn.onkey(reset, key='space')
+
+    def __draw_messages(self) -> bool:
         with self.__draw_lock:
             if self.current_time > self.max_time:
                 self.pen.clear()
@@ -160,3 +172,14 @@ class ByzantineMessages(object):
     def reset(self):
         with self.__draw_lock:
             self.current_time = 0
+
+    def __run_ontimer(self):
+        self.__wn.update()
+        if self.__draw_messages():
+            self.__wn.ontimer(lambda: self.__run_ontimer(), self.time_window_time_ms)
+
+    def start(self):
+        self.reset()
+        self.__run_ontimer()
+        turtle.listen()
+        self.__wn.mainloop()
