@@ -1,15 +1,24 @@
 from __future__ import annotations
 import turtle
+import math
 import json
 from typing import Tuple, Optional, List, Dict
-from enum import Enum
+from enum import IntEnum
 
 
-class MessageStatus(Enum):
+class MessageStatus(IntEnum):
     Unexpected = 0
     Success = 1
     NotDelivered = 2
     Tampered = 3
+
+    @staticmethod
+    def from_int(value: int) -> MessageStatus:
+        possible_values = {int(x): x for x in MessageStatus}
+        resp = possible_values.get(value)
+        if resp is None:
+            raise Exception(f"Invalid value {value} for MessageStatus")
+        return resp
 
 
 class General(object):
@@ -25,22 +34,20 @@ class General(object):
         self.obj.penup()
         current_pos = self.obj.pos()
         self.obj.goto(pos[0] + current_pos[0], pos[1] + current_pos[1])
-        self.pen = turtle.Pen()
 
-    def send_msg(self, general: General, status: MessageStatus, pen: Optional[turtle.Pen] = None):
+    def send_msg(self, general: General, status: MessageStatus, pen: turtle.Pen):
         if status == MessageStatus.Unexpected:
             raise Exception("Unexpected message status")
         if general == self:
             raise Exception("A general cannot send a message to itself")
 
-        if not pen:
-            pen = self.pen
-        pen.hideturtle()
+        pen.showturtle()
         pen.color(General.message_color[status])
         pen.penup()
         pen.goto(*self.obj.pos())
         pen.pendown()
         pen.goto(*general.obj.pos())
+        pen.hideturtle()
 
     def __str__(self) -> str:
         pos = self.obj.pos()
@@ -65,11 +72,13 @@ class Message(object):
 
 
 class ByzantineMessages(object):
-    def __init__(self, messages: List[Message]):
+    def __init__(self, messages: List[Message], r: Optional[int] = None, factor: int = 10):
         self.time_messages: Dict[int, List[Message]] = {}
         self.max_time = 0
         self.pen = turtle.Pen()
+        self.pen.hideturtle()
         self.current_time = 0
+        self.r = r
 
         max_generals = 0
 
@@ -82,7 +91,14 @@ class ByzantineMessages(object):
 
             self.time_messages[message.moment] = list_msg
 
-        self.generals = [General((x * 50, 0)) for x in range(max_generals + 1)]
+        num_generals = max_generals + 1
+        if not self.r:
+            self.r = num_generals * factor
+        self.generals = [
+            General(pos=(int(self.r * math.cos(x * 2 * math.pi / num_generals)),
+                         int(self.r * math.sin(x * 2 * math.pi / num_generals))))
+            for x in range(num_generals)
+        ]
 
     def draw_messages(self) -> bool:
         if self.current_time > self.max_time:
