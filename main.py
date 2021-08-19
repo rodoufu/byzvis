@@ -14,6 +14,11 @@ def run_ontimer(wn: turtle.Screen, bm: ByzantineMessages, next_time: int):
         wn.ontimer(lambda: run_ontimer(wn, bm, next_time), next_time)
 
 
+def reset(wn: turtle.Screen, bm: ByzantineMessages, next_time: int):
+    bm.reset()
+    run_ontimer(wn, bm, next_time)
+
+
 async def main():
     my_parser = argparse.ArgumentParser(prog="byzvis", allow_abbrev=False)
     my_parser.add_argument('--time_window_time', action='store', type=int, help="Time between messages in milliseconds")
@@ -22,6 +27,7 @@ async def main():
     args = my_parser.parse_args()
 
     wn = turtle.Screen()
+    wn.onkey(lambda: reset(wn, bm, time_window_time_ms), key='space')
     time_window_time_ms = args.time_window_time or 500
     source_file = args.source
     messages: List[Message] = []
@@ -39,6 +45,7 @@ async def main():
     bm = ByzantineMessages(messages)
     run_ontimer(wn, bm, time_window_time_ms)
 
+    turtle.listen()
     wn.mainloop()
 
 
