@@ -1,0 +1,3 @@
+# byzvis
+
+Byzantine problem visualizer
