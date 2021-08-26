@@ -15,7 +15,7 @@ class General(object):
 
     def __init__(self, label: str, pos: Tuple[int, int] = (0, 0), color: Optional[str] = None):
         self.normal_color = color or 'black'
-        self.clicked_color = 'yellow'
+        self.clicked_color = 'gray'
 
         self.obj = turtle.Turtle()
         self.obj.color(self.normal_color)
