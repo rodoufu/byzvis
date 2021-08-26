@@ -2,7 +2,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 
-from bysviz import ByzantineMessages, Message
+from byzvis import ByzantineMessages, Message
 
 
 async def main():
